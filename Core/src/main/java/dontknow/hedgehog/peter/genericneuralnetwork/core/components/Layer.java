@@ -1,4 +1,6 @@
-package dontknow.hedgehog.peter.genericneuralnetwork.core;
+package dontknow.hedgehog.peter.genericneuralnetwork.core.components;
+
+import dontknow.hedgehog.peter.genericneuralnetwork.core.configs.LayerConfig;
 
 public class Layer {
 
@@ -19,6 +21,10 @@ public class Layer {
 
     public double[] getOutputs() {
         return outputs;
+    }
+
+    public void setOutput(final int index, final double output) {
+        this.outputs[index] = output;
     }
 
     /**

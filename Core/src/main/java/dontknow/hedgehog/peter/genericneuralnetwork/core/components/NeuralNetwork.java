@@ -1,0 +1,149 @@
+package dontknow.hedgehog.peter.genericneuralnetwork.core.components;
+
+import dontknow.hedgehog.peter.genericneuralnetwork.core.Util;
+import dontknow.hedgehog.peter.genericneuralnetwork.core.configs.NeuralNetworkConfig;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+public class NeuralNetwork {
+
+    private final NeuralNetworkConfig neuralNetworkConfig;
+
+    private final Layer inputLayer;
+
+    private final Layer outputLayer;
+
+    private final Layer[] hiddenLayers;
+
+    private final Connector[] connectors;
+
+    public NeuralNetwork(final NeuralNetworkConfig neuralNetworkConfig) {
+        if ( neuralNetworkConfig == null ) throw new NullPointerException("NeuralNetworkConfig must not be null.");
+
+        this.neuralNetworkConfig = neuralNetworkConfig;
+
+        this.inputLayer = new Layer(neuralNetworkConfig.getInputLayerConfig());
+        this.outputLayer = new Layer(neuralNetworkConfig.getOutputLayerConfig());
+
+        this.hiddenLayers = new Layer[neuralNetworkConfig.getHiddenLayerAmount()];
+        for ( int i = 0; i < this.hiddenLayers.length; i++ ) {
+            this.hiddenLayers[i] = new Layer(neuralNetworkConfig.getHiddenLayerConfigs()[i]);
+        }
+
+        //One between input and output and/or for each hidden layer one more.
+        this.connectors = new Connector[hiddenLayers.length+1];
+
+        final List<Layer> tmpLayerList = new ArrayList<>();
+
+        tmpLayerList.add(inputLayer);
+        for ( final Layer hiddenLayer : this.hiddenLayers ) {
+            tmpLayerList.add(hiddenLayer);
+        }
+        tmpLayerList.add(outputLayer);
+
+        for ( int i = 0; i < tmpLayerList.size()-1; i++ ) {
+            this.connectors[i] = new Connector(tmpLayerList.get(i), tmpLayerList.get(i+1));
+
+            //Initialize weights
+            this.connectors[i].randomizeWeights(this.neuralNetworkConfig.getConnectorConfig().getWeightRandomizer());
+        }
+    }
+
+    public double[] process(final double[] input) {
+        if ( input.length != this.inputLayer.getLayerConfig().getNodeAmount() ) {
+            throw new IllegalArgumentException("Expected input with "+this.inputLayer.getLayerConfig().getNodeAmount()+
+                    " values (amount input layer's nodes), but were "+input.length+".");
+        }
+
+        //Copy input to input layers output
+        for ( int i = 0; i < input.length; i++ ) {
+            this.inputLayer.setOutput(i, input[i]);
+        }
+
+
+        for ( final Connector connector : connectors ) {
+            processConnector(connector);
+        }
+
+        //Copy output of output layer as result
+        return this.outputLayer.getOutputs().clone();
+    }
+
+    private void processConnector(final Connector connector) {
+        if ( connector == null ) throw new NullPointerException("Connector must not be null.");
+
+        final Layer from = connector.getFrom();
+        final Layer to = connector.getTo();
+
+        final int from_n = from.getLayerConfig().getNodeAmount();
+        final int to_n = to.getLayerConfig().getNodeAmount();
+
+        //Calculate sgmoid(sum) for each node.
+        for ( int i = 0; i < to_n; i++ ) {
+            double sum = 0.0;
+
+            for ( int j = 0; j < from_n; j++ ) {
+                //System.out.println("w: "+connector.getWeight(j, i));
+                sum += from.getNodeOutput(j)*connector.getWeight(j, i);
+
+            }
+
+            to.setOutput(i, Util.sigmoid(sum));
+        }
+    }
+
+    public NeuralNetworkConfig getNeuralNetworkConfig() {
+        return neuralNetworkConfig;
+    }
+
+    public Layer getInputLayer() {
+        return inputLayer;
+    }
+
+    public Layer getOutputLayer() {
+        return outputLayer;
+    }
+
+    public Layer[] getHiddenLayers() {
+        return hiddenLayers;
+    }
+
+    public Connector[] getConnectors() {
+        return connectors;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NeuralNetwork that = (NeuralNetwork) o;
+        return Objects.equals(getNeuralNetworkConfig(), that.getNeuralNetworkConfig()) &&
+                Objects.equals(getInputLayer(), that.getInputLayer()) &&
+                Objects.equals(getOutputLayer(), that.getOutputLayer()) &&
+                Arrays.equals(getHiddenLayers(), that.getHiddenLayers()) &&
+                Arrays.equals(getConnectors(), that.getConnectors());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(getNeuralNetworkConfig(), getInputLayer(), getOutputLayer());
+        result = 31 * result + Arrays.hashCode(getHiddenLayers());
+        result = 31 * result + Arrays.hashCode(getConnectors());
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "NeuralNetwork{\n" +
+                "\tneuralNetworkConfig=" + neuralNetworkConfig + "\n" +
+                "\tinputLayer=" + inputLayer + "\n" +
+                "\toutputLayer=" + outputLayer + "\n" +
+                "\thiddenLayers=" + Arrays.toString(hiddenLayers) + "\n" +
+                "\tconnectors=" + Arrays.toString(connectors) + "\n" +
+                '}';
+    }
+
+}

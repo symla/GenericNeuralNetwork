@@ -1,4 +1,4 @@
-package dontknow.hedgehog.peter.genericneuralnetwork.core;
+package dontknow.hedgehog.peter.genericneuralnetwork.core.configs;
 
 import java.util.Objects;
 

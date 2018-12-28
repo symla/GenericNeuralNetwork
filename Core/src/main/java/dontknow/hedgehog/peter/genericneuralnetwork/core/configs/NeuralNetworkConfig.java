@@ -1,9 +1,11 @@
-package dontknow.hedgehog.peter.genericneuralnetwork.core;
+package dontknow.hedgehog.peter.genericneuralnetwork.core.configs;
 
 import java.util.Arrays;
 import java.util.Objects;
 
 public class NeuralNetworkConfig {
+
+    private final ConnectorConfig connectorConfig;
 
     private final LayerConfig inputLayerConfig;
 
@@ -11,16 +13,24 @@ public class NeuralNetworkConfig {
 
     private final LayerConfig[] hiddenLayerConfigs;
 
-    public NeuralNetworkConfig(final LayerConfig inputLayerConfig,
+
+    public NeuralNetworkConfig(final ConnectorConfig connectorConfig,
+                               final LayerConfig inputLayerConfig,
                                final LayerConfig outputLayerConfig,
                                final LayerConfig ...hiddenLayerConfigs) {
 
+        if ( connectorConfig == null ) throw new NullPointerException("ConnectorConfig must not be null.");
         if ( inputLayerConfig == null ) throw new NullPointerException("InputLayerConfig must not be null.");
         if ( outputLayerConfig == null ) throw new NullPointerException("OutputLayerConfig must not be null.");
 
+        this.connectorConfig = connectorConfig;
         this.inputLayerConfig = inputLayerConfig;
         this.outputLayerConfig = outputLayerConfig;
         this.hiddenLayerConfigs = hiddenLayerConfigs;
+    }
+
+    public ConnectorConfig getConnectorConfig() {
+        return connectorConfig;
     }
 
     public LayerConfig getInputLayerConfig() {
@@ -44,14 +54,15 @@ public class NeuralNetworkConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NeuralNetworkConfig that = (NeuralNetworkConfig) o;
-        return Objects.equals(getInputLayerConfig(), that.getInputLayerConfig()) &&
+        return Objects.equals(getConnectorConfig(), that.getConnectorConfig()) &&
+                Objects.equals(getInputLayerConfig(), that.getInputLayerConfig()) &&
                 Objects.equals(getOutputLayerConfig(), that.getOutputLayerConfig()) &&
                 Arrays.equals(getHiddenLayerConfigs(), that.getHiddenLayerConfigs());
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(getInputLayerConfig(), getOutputLayerConfig());
+        int result = Objects.hash(getConnectorConfig(), getInputLayerConfig(), getOutputLayerConfig());
         result = 31 * result + Arrays.hashCode(getHiddenLayerConfigs());
         return result;
     }
@@ -59,7 +70,8 @@ public class NeuralNetworkConfig {
     @Override
     public String toString() {
         return "NeuralNetworkConfig{" +
-                "inputLayerConfig=" + inputLayerConfig +
+                "connectorConfig=" + connectorConfig +
+                ", inputLayerConfig=" + inputLayerConfig +
                 ", outputLayerConfig=" + outputLayerConfig +
                 ", hiddenLayerConfigs=" + Arrays.toString(hiddenLayerConfigs) +
                 '}';

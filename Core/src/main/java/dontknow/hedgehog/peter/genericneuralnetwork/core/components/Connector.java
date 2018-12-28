@@ -1,4 +1,6 @@
-package dontknow.hedgehog.peter.genericneuralnetwork.core;
+package dontknow.hedgehog.peter.genericneuralnetwork.core.components;
+
+import dontknow.hedgehog.peter.genericneuralnetwork.core.components.weights.WeightRandomizer;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -20,6 +22,16 @@ public class Connector {
         this.to = to;
 
         this.weights = new double[from.getLayerConfig().getNodeAmount()][to.getLayerConfig().getNodeAmount()];
+    }
+
+    public void randomizeWeights(final WeightRandomizer weightRandomizer) {
+        if ( weightRandomizer == null ) throw new NullPointerException("WeightRandomizer must not be null.");
+
+        for ( int i = 0; i < weights.length; i++ ) {
+            for ( int j = 0; j < weights[i].length; j++ ) {
+                weights[i][j] = weightRandomizer.getNextRandomWeight(to.getLayerConfig(), from.getLayerConfig());
+            }
+        }
     }
 
     public Layer getFrom() {
@@ -61,10 +73,19 @@ public class Connector {
 
     @Override
     public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        for ( int i = 0; i < weights.length; i++ ) {
+            if ( i > 0 && i < weights.length-1 ) sb.append(", ");
+            sb.append("from ");
+            sb.append(i);
+            sb.append(": ");
+            sb.append(Arrays.toString(this.weights[i]));
+        }
+
         return "Connector{" +
                 "from=" + from +
                 ", to=" + to +
-                ", weights=" + Arrays.toString(weights) +
+                ", weights=[" + sb.toString() +"]"+
                 '}';
     }
 }
