@@ -7,6 +7,8 @@ public class NeuralNetworkConfig {
 
     private final ConnectorConfig connectorConfig;
 
+    private final double learnRate;
+
     private final LayerConfig inputLayerConfig;
 
     private final LayerConfig outputLayerConfig;
@@ -15,6 +17,7 @@ public class NeuralNetworkConfig {
 
 
     public NeuralNetworkConfig(final ConnectorConfig connectorConfig,
+                               final double learnRate,
                                final LayerConfig inputLayerConfig,
                                final LayerConfig outputLayerConfig,
                                final LayerConfig ...hiddenLayerConfigs) {
@@ -24,6 +27,7 @@ public class NeuralNetworkConfig {
         if ( outputLayerConfig == null ) throw new NullPointerException("OutputLayerConfig must not be null.");
 
         this.connectorConfig = connectorConfig;
+        this.learnRate = learnRate;
         this.inputLayerConfig = inputLayerConfig;
         this.outputLayerConfig = outputLayerConfig;
         this.hiddenLayerConfigs = hiddenLayerConfigs;
@@ -31,6 +35,10 @@ public class NeuralNetworkConfig {
 
     public ConnectorConfig getConnectorConfig() {
         return connectorConfig;
+    }
+
+    public double getLearnRate() {
+        return learnRate;
     }
 
     public LayerConfig getInputLayerConfig() {
@@ -54,7 +62,8 @@ public class NeuralNetworkConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NeuralNetworkConfig that = (NeuralNetworkConfig) o;
-        return Objects.equals(getConnectorConfig(), that.getConnectorConfig()) &&
+        return Double.compare(that.getLearnRate(), getLearnRate()) == 0 &&
+                Objects.equals(getConnectorConfig(), that.getConnectorConfig()) &&
                 Objects.equals(getInputLayerConfig(), that.getInputLayerConfig()) &&
                 Objects.equals(getOutputLayerConfig(), that.getOutputLayerConfig()) &&
                 Arrays.equals(getHiddenLayerConfigs(), that.getHiddenLayerConfigs());
@@ -62,7 +71,7 @@ public class NeuralNetworkConfig {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(getConnectorConfig(), getInputLayerConfig(), getOutputLayerConfig());
+        int result = Objects.hash(getConnectorConfig(), getLearnRate(), getInputLayerConfig(), getOutputLayerConfig());
         result = 31 * result + Arrays.hashCode(getHiddenLayerConfigs());
         return result;
     }
@@ -71,6 +80,7 @@ public class NeuralNetworkConfig {
     public String toString() {
         return "NeuralNetworkConfig{" +
                 "connectorConfig=" + connectorConfig +
+                ", learnRate=" + learnRate +
                 ", inputLayerConfig=" + inputLayerConfig +
                 ", outputLayerConfig=" + outputLayerConfig +
                 ", hiddenLayerConfigs=" + Arrays.toString(hiddenLayerConfigs) +

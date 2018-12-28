@@ -15,32 +15,41 @@ public class Main {
 
         final NeuralNetworkConfig neuralNetworkConfig = new NeuralNetworkConfig(
                 new ConnectorConfig(
-                        new NodeAmountBasedWeightRandomizer(123663)
+                        new NodeAmountBasedWeightRandomizer(1236634445)
                 ),
-                new LayerConfig(10),
-                new LayerConfig(10),
-                new LayerConfig(10)
+                0.1,
+                new LayerConfig(3),
+                new LayerConfig(3),
+                new LayerConfig(3)
         );
 
         final NeuralNetwork neuralNetwork = new NeuralNetwork(neuralNetworkConfig);
 
         final double[] testData = new double[]{
-                1.0,
-                0.5,
-                0.25,
-                0.00001,
-                0.444,
-                0.3,
-                0.222,
                 0.1,
-                0.7,
-                0.65
+                0.5,
+                0.25
         };
 
-        final double[] output = neuralNetwork.process(testData);
+        final double[] expectedOutput = new double[]{
+                0.9,
+                0.001,
+                0.02
+        };
+
+        double[] output = null;
 
 
-        System.out.println("Output: \n\t"+ Arrays.toString(output));
+        int n = 1000000;
+        for ( int i = 0; i < n; i++ ) {
+            output = neuralNetwork.process(testData);
+            neuralNetwork.processOutputExpectation(expectedOutput);
+
+            if ( i >= n-10 )
+                System.out.println("Output: \n\t"+ Arrays.toString(output));
+        }
+
+
 
     }
 }
