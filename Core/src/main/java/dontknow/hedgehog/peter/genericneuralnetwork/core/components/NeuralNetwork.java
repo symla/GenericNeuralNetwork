@@ -82,21 +82,21 @@ public class NeuralNetwork {
         final int to_n = to.getLayerConfig().getNodeAmount();
 
         //Calculate sgmoid(sum) for each node.
-        for ( int i = 0; i < to_n; i++ ) {
+        for ( int to_index = 0; to_index < to_n; to_index++ ) {
             double sum = 0.0;
 
-            for ( int j = 0; j < from_n; j++ ) {
+            for ( int from_index = 0; from_index < from_n; from_index++ ) {
                 //System.out.println("w: "+connector.getWeight(j, i));
-                sum += from.getNodeOutput(j)*connector.getWeight(j, i);
+                sum += from.getNodeOutput(from_index)*connector.getWeight(from_index, to_index);
 
             }
 
-            to.setOutput(i, Util.sigmoid(sum));
+            to.setOutput(to_index, Util.sigmoid(sum));
         }
     }
 
 
-    public void processOutputExpectation(final double[] expectation) {
+    public void processOutputExpectationSquared(final double[] expectation) {
         if ( expectation.length != this.outputLayer.getLayerConfig().getNodeAmount() ) {
             throw new IllegalArgumentException("Expected "+this.outputLayer.getLayerConfig().getNodeAmount() +
                     " expectation values (amount of output layer's nodes), but were "+expectation.length+".");
@@ -104,7 +104,15 @@ public class NeuralNetwork {
 
         final double[] errors = new double[expectation.length];
         for ( int i = 0; i < errors.length; i++ ) {
-            errors[i] = outputLayer.getNodeOutput(i)-expectation[i];
+
+            /*
+            double error = outputLayer.getNodeOutput(i)-expectation[i];
+            errors[i] = Math.pow(error, 2);
+            if ( error < 0 ) errors[i] *= -1;
+            */
+
+
+            errors[i] = expectation[i]-outputLayer.getNodeOutput(i);
         }
 
         processOutputError(errors);
@@ -117,7 +125,7 @@ public class NeuralNetwork {
         }
 
         this.outputLayer.setErrors(errors.clone());
-        for ( int i = this.connectors.length-1; i > 0; i-- ) {
+        for ( int i = this.connectors.length-1; i >= 0; i-- ) {
             processOutputErrorConnector(connectors[i]);
         }
     }
@@ -131,18 +139,45 @@ public class NeuralNetwork {
         from.setErrors(new double[from.getLayerConfig().getNodeAmount()]);
 
         //Nodes of to
-        for ( int i = 0; i < to.getLayerConfig().getNodeAmount(); i++ ) {
+        for ( int to_index = 0; to_index < to.getLayerConfig().getNodeAmount(); to_index++ ) {
+
+            final double delta =
+                    this.neuralNetworkConfig.getLearnRate() *
+                    to.getNodeError(to_index) *
+                    to.getNodeOutput(to_index) *
+                    (1 - to.getNodeOutput(to_index));
 
             //Nodes of from
-            for ( int j = 0; j < from.getLayerConfig().getNodeAmount(); j++ ) {
+            for ( int from_index = 0; from_index < from.getLayerConfig().getNodeAmount(); from_index++ ) {
+
+                connector.setWeight(from_index, to_index,
+                             connector.getWeight(from_index, to_index) + (delta * from.getNodeOutput(from_index)));
+
+                from.setError(from_index,from.getNodeError(from_index) + connector.getWeight(from_index, to_index) * to.getNodeError(to_index));
+
+                /*
                 final double deltaError =
-                        -1.0 * to.getErrors()[i] * Util.sigmoid(to.getNodeOutput(i)) *
+                        1.0 * to.getErrors()[i] * Util.sigmoid(to.getNodeOutput(i)) *
                         Util.sigmoid(1.0 - to.getNodeOutput(i)) * from.getNodeOutput(j) *
                         this.neuralNetworkConfig.getLearnRate();
 
                 connector.setWeight(j, i, connector.getWeight(j, i)+deltaError);
+                */
 
-                from.setError(j, from.getNodeError(j)+(connector.getWeight(j, i)*to.getNodeOutput(i)));
+                //from.setError(j, from.getNodeError(j)+(connector.getWeight(j, i)*to.getNodeError(i)*-0.0));
+
+
+
+                /*
+                final double deltaError =
+                        -1.0 * to.getErrors()[i] * to.getNodeOutput(i) *
+                                (1.0 - to.getNodeOutput(i)) * from.getNodeOutput(j) *
+                                this.neuralNetworkConfig.getLearnRate();
+                */
+
+                //connector.setWeight(j, i, connector.getWeight(j, i)+deltaError);
+
+                //from.setError(j, from.getNodeError(j)+(connector.getWeight(j, i)*to.getNodeError(i)));
             }
         }
 

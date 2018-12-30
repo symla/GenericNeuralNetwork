@@ -29,7 +29,7 @@ public class Connector {
 
         for ( int i = 0; i < weights.length; i++ ) {
             for ( int j = 0; j < weights[i].length; j++ ) {
-                weights[i][j] = weightRandomizer.getNextRandomWeight(to.getLayerConfig(), from.getLayerConfig());
+                weights[i][j] = weightRandomizer.getNextRandomWeight(from.getLayerConfig(), to.getLayerConfig());
             }
         }
     }
