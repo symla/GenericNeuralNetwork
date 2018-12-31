@@ -104,14 +104,6 @@ public class NeuralNetwork {
 
         final double[] errors = new double[expectation.length];
         for ( int i = 0; i < errors.length; i++ ) {
-
-            /*
-            double error = outputLayer.getNodeOutput(i)-expectation[i];
-            errors[i] = Math.pow(error, 2);
-            if ( error < 0 ) errors[i] *= -1;
-            */
-
-
             errors[i] = expectation[i]-outputLayer.getNodeOutput(i);
         }
 

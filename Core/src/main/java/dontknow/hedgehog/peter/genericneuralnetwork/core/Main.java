@@ -73,18 +73,27 @@ public class Main {
 
         final NeuralNetworkConfig neuralNetworkConfig = new NeuralNetworkConfig(
                 new ConnectorConfig(
-                        new NodeAmountBasedWeightRandomizer(120)
+                        //1216: 97.67% at 20 iterations and 150 nodes
+                        //1218: 97.71% at 20 iterations and 150 nodes
+                        //1218: 97.61% at 30 iterations and 150 nodes
+
+                        //1218: 96.22% at 15 iterations and 80 nodes
+
+                        //1218: 97.09% at 15 15 iterations and 150 nodes
+                        new NodeAmountBasedWeightRandomizer(1218)
                         //new MinMaxWeightRandomizer(1320, -0.2, 0.2)
                 ),
-                0.2,
+                0.01,
                 new LayerConfig(28*28),
                 new LayerConfig(10),
-                new LayerConfig(100)
+                //new LayerConfig(150),
+                new LayerConfig(150)
         );
 
         final NeuralNetwork neuralNetwork = new NeuralNetwork(neuralNetworkConfig);
 
 
+        /*
         System.out.println();
 
         System.out.println(Arrays.toString(trainingImages[0]));
@@ -96,6 +105,7 @@ public class Main {
         System.out.println(Arrays.toString(double_testImages[0]));
 
         System.out.println();
+        */
 
         //if ( true ) return;
 
@@ -104,34 +114,23 @@ public class Main {
             indicies.add(i);
         }
 
-        Collections.shuffle(indicies, new Random(123));
+        final Random shuffleRandom = new Random(122);
 
 
         System.out.println("Starting training session...");
-        for ( int round = 0; round < 1; round++ ) {
-            for ( int i = 0; i < 60000/*double_trainingImages.length*/; i++ ) {
+        for ( int round = 0; round < 15; round++ ) {
+
+            System.out.println("\tRound: "+round);
+
+            Collections.shuffle(indicies, shuffleRandom);
+
+            for ( int i = 0; i < double_trainingImages.length; i++ ) {
                 final int currentIndex = indicies.get(i);
 
-
                 final double[] result = neuralNetwork.process(double_trainingImages[currentIndex]);
-
-                //System.out.println("1: "+Arrays.toString(neuralNetwork.getOutputLayer().getOutputs()));
-
                 neuralNetwork.processOutputExpectationSquared(double_trainingLabels[currentIndex]);
 
-                /*
-                printImage(28, 28, trainingImages[i]);
-                System.out.println("= "+trainingLabels[i]);
-                System.out.println();
-                */
-
-                //System.out.println("|: "+Arrays.toString(double_trainingLabels[i]));
-
-                //System.out.println("2: "+Arrays.toString(neuralNetwork.getOutputLayer().getErrors()));
-
-
-
-                if ( i % 999 == 0 ) System.out.println("\tProgress: "+i);
+                if ( i % 999 == 0 ) System.out.println("\t\tProgress: "+i);
             }
         }
 
@@ -212,7 +211,7 @@ public class Main {
     }
 
     private static double imageIntToDouble(final int value) {
-        return ((double)value/255.0d)*0.98+0.01;
+        return ((double)value/255.0d)*0.90+0.01;
     }
 
     private static int[] readMNISTLabelFile(final String file) throws IOException {
